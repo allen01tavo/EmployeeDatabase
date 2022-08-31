@@ -1,7 +1,7 @@
 '''
 Created on August 3, 2022
 filename: database.py
-
+last update: August 23, 2022
 @author: Gus_Maturana
 '''
 
@@ -120,6 +120,27 @@ class database:
                                         WHERE ID = '%d' ''' %record
         table.execute(statement)
         table.commit()
+
+    def update_phone_screen_record(self, db_name, record):
+        table = sql.connect(db_name)
+        statement = '''UPDATE PHONE_SCREENING SET NAME                 = '%s',                     
+                                                  LASTNAME             = '%s',
+                                                  PHONE                = '%s',
+                                                  INTERVIEWER          = '%s',
+                                                  DIVISION             = '%s',
+                                                  DATE_                = '%s',
+                                                  CURRENTCOMPANY       = '%s',
+                                                  REASON               = '%s',
+                                                  TECHNICAL            = '%s',
+                                                  MANAGEMENT           = '%s',
+                                                  MANAGEMMENT_COMM     = '%s',
+                                                  RECOMENDATION        = '%s',
+                                                  ASSESSMENT           = '%s',
+                                                  ROLE                 = '%s',
+                                                  REQ                  = '%s'
+                                                  WHERE ID_KEY_PRIMARY = '%d' ''' %record
+        table.execute(statement)
+        table.commit()
             
     def general_search_query(self, db_name, record):
         table = sql.connect(db_name)
@@ -137,16 +158,6 @@ class database:
                            "OR CONTACTINFO LIKE '%" + record  + "%'" + \
                            "OR INTERVIEW LIKE '%" + record + "%" + \
                            "OR OFFER LIKE '%" + record + "%"
-                            
-            
-    def insert_record_patient_data(self, db_name, record):
-        #insert items into BLSUGGAR table
-        table = sql.connect(db_name)
-        try:
-            table.execute('INSERT INTO PATIENT_DATA VALUES (?,?,?,?,?,?)', record)
-            table.commit()
-        except:
-            ers.errors().error_messages(5)
         
     def remove_record(self, db_name, tbl, record):
         # Deletes item from Database
@@ -311,7 +322,7 @@ class database:
             return False
     
     # Retrieves the patient record according matching a ID
-    def get_patient(self, db_name, ID):
+    def get_candidate(self, db_name, ID):
         
         table = sql.connect(db_name)
         cursor = table.cursor()
@@ -399,7 +410,6 @@ class database:
         cursor.execute(condition)
         record_ = cursor.fetchone()
 
-        
         return record_
 
     def get_phone_exist(self, db_name, ID):
@@ -416,8 +426,26 @@ class database:
             return False
         else:
             return True
+    '''
+    def record_to_edit(self, record)
+        new_record = []
+    '''
+
+    def is_record(self, db_, ID):
+
+        table = sql.connect(db_)
+        cursor = table.cursor()
         
+        condition = "SELECT * FROM CANDIDATE \
+               WHERE ID == '%d'" % (ID)
         
+        cursor.execute(condition)
+        record_ = cursor.fetchone()
+        if record_ == None:
+            return False
+        else:
+            return True
+
         
 
     
