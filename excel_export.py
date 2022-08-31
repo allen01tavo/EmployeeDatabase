@@ -1,3 +1,10 @@
+'''
+	Created on August 19, 2022
+	filename: database.py
+	last update: August 23, 2022
+	@author: Gus_Maturana
+'''
+
 import xlwt
 import shutil
 from xlwt import Workbook
@@ -5,6 +12,7 @@ from xlrd import open_workbook
 from xlutils.copy import copy
 import database as db
 import openpyxl
+import os
 
 class export_to_excel:
 
@@ -35,7 +43,7 @@ class export_to_excel:
 
 	# export form to an excel file and saves the inputs to the database
 	# it takes a array of the items and the database name
-	def export_to_form(self, record_, db_name):
+	def export_to_form(self, db_name, record_):
 		
 		name_ = record_[1] + "_" + record_[2] # full name
 		file = self.copyfile(name_)
@@ -65,9 +73,9 @@ class export_to_excel:
 		sheet["D39"] = record_[15]
 
 		wb.save(file)
-
-		# saves screening interview to the database
-		db.database().insert_record_phone_screen(db_name, record_)
+		
+		cmd = 'open ' + file 
+		os.system(cmd)
 
 	# copies the template an creates a new xlsx file
 	def copyfile(self, file_):
