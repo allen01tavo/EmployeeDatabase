@@ -14,6 +14,9 @@ from tkinter.constants import VERTICAL
 from tkinter import *
 from tkcalendar import *
 import random
+from datetime import date
+import email as mail
+from email import messages 
 
 
 class candidate_ui:
@@ -211,6 +214,9 @@ class candidate_ui:
         # Creates a save and close button
         self.save_btn = Tr.Button(self.new_candidate_window, text = 'SAVE', width = 10, command = lambda:self.save_record(title_)).grid(row = 52, column = 4)
         self.cancel_btn = Tr.Button(self.new_candidate_window, text = 'CANCEL', width = 10, command = self.cancel_).grid(row = 52, column = 5)
+        self.loadButton = Tr.Button(self.new_candidate_window, text = 'Load Resume', width = 10,
+                                    command = lambda:self.load_resume(self.keyEntry.get()))
+        self.loadButton.grid(row = 52, column = 0)
 
         # Note grid() won't allow entry fields to be focus()
         #key_= 1 + len(self.recordListColumn.get_children())
@@ -228,6 +234,8 @@ class candidate_ui:
         self.delete_btn = Tr.Button(self.new_candidate_window, text = 'Delete', width = 10, command =self.delete_candidate).grid(row = 90, column = 3)
         self.pScreen_btn = Tr.Button(self.new_candidate_window, text = 'Phone Screen', width = 10, command =lambda:self.phone_screen_interview(record_))
         self.pScreen_btn.grid(row = 90, column = 4)
+        self.loadButton['text'] = 'View Resume'
+        self.loadButton['command'] = lambda:self.view_resume(key)
 
         self.keyEntry.delete(0, Tr.END)
         self.keyEntry.insert('end', record_[0])
@@ -316,6 +324,12 @@ class candidate_ui:
         # Destroys the new_candidate_window
         self.new_candidate_window.destroy()
     
+    def load_resume(self, key_):
+        messages().browse_file(key_)
+
+    def view_resume(self, key_):
+        messages().open_files(key_)
+
     # Deletes candidate record    
     def delete_candidate(self):
         #this function also deletes the candidate personal database
@@ -443,7 +457,7 @@ class candidate_ui:
         title = db.database().get_record('candidate2.db', record_[0]) + '\'s Phone Screen'
 
         self.phone_screen_window = Tr.Tk()                     # creates a new window
-        self.phone_screen_window.minsize(700, 600)
+        self.phone_screen_window.minsize(700, 700)
         self.phone_screen_window.title(title)
 
         # Frames
@@ -533,6 +547,8 @@ class candidate_ui:
             self.phoneEntry.insert('end', record_[8])
             self.req_.insert('end', record_[4])
             self.role_.set(record_[5])
+            self.divisionEntry.insert('end','SAS')
+            self.dateEntry.insert('end', self.format_date(str(date.today())))
         else:
             rcd_ = db.database().get_phone_screen('interview.db', record_[0])
             self.candidateEntry.insert('end', rcd_[1] + " " + rcd_[2])
@@ -549,10 +565,30 @@ class candidate_ui:
             self.notesEntry_3.insert('end',rcd_[11])
             self.recommendationSelect.set(rcd_[12])
             self.notesEntry.insert('end',rcd_[13])
+        
+        self.btnFrame = Tr.Frame(self.phone_screen_window, width = 70)
+        self.saveNotesBtn = Tr.Button(self.btnFrame, text = 'SAVE', width = 20, 
+                                      command = lambda:self.save_phone_screen('interview.db', record_[0]))
+        self.saveNotesBtn.pack(side = 'left')
+        self.sendBtn = Tr.Button(self.btnFrame, text = 'Send Form', width = 20, 
+                                 command = lambda:self.send_form('gusmaturana@icloud.com', 'Carl', 'New Hire'))
+        self.sendBtn.pack(side = 'left')
+        self.openformBtn = Tr.Button(self.btnFrame, text = 'Open Form', width = 20,
+                                     command = lambda:self.save_phone_screen('interview.db', record_[0]))
+        self.openformBtn.pack(side = 'right')
+        self.clsBtn = Tr.Button(self.phone_screen_window, text = 'Close', width = 20,
+                                command = lambda:self.phone_screen_window.destroy())
+        self.clsBtn.pack(side = 'bottom')
+        self.vResumeBtn = Tr.Button(self.phone_screen_window, text = 'View Resume', width = 20,
+                                    command = lambda:self.view_resume(record_[0]))
+        self.vResumeBtn.pack(side = 'bottom')
 
-        self.saveNotesBtn = Tr.Button(self.phone_screen_window, text = 'SAVE', width = 20, command = lambda:self.save_phone_screen('interview.db', record_[0]))
+        if self.find_phone_screen('interview.db', record_[0]) == False: 
+            self.sendBtn['state'] = 'disabled'
+            self.openformBtn['state'] = 'disabled'
 
-        self.saveNotesBtn.pack(side = 'bottom')
+        self.btnFrame.pack(side = 'bottom')
+        #self.saveNotesBtn.pack(side = 'bottom')
         self.recommendationSelect.pack(side = 'bottom')
         self.roleInfo.pack(side = 'bottom')
         self.notesFrame_4.pack(side = 'bottom')
@@ -566,6 +602,7 @@ class candidate_ui:
         self.cCompanyFrame.pack(side = 'bottom')
         self.interviewerInfo.pack(side = 'bottom')
         self.candidateInfo.pack(side = 'top') 
+       
 
     # saves the phone screen form an creates a excel form
     def save_phone_screen(self, db_name, key_):
@@ -575,10 +612,22 @@ class candidate_ui:
                     self.divisionEntry.get(), self.cCompanyEntry.get(), self.notesEntry_1.get("1.0","end-1c"), 
                     self.notesEntry_2.get("1.0","end-1c"), self.managementEntry.get(), self.notesEntry_3.get("1.0","end-1c"),
                     self.recommendationSelect.get(), self.notesEntry.get("1.0","end-1c"), self.role_.get(), self.req_.get())
+        # To update the candidate database
+        mRecord_ = db.database().get_candidate('candidate2.db', key_)
+        if self.recommendationSelect.get() == 'INTERVIEW':
+            inter_ = 'YES'
+        else:
+            inter_ = 'Dispositon'
+        main_record_ = (mRecord_[1], mRecord_[2], mRecord_[3], mRecord_[4], mRecord_[5], mRecord_[6], mRecord_[8], 
+                        mRecord_[7], inter_, mRecord_[10], mRecord_[0])
         
         if self.find_phone_screen('interview.db', int(key_)) == False:
             db.database().insert_record_phone_screen(db_name, record_)
             ex.export_to_excel().export_to_form(db_name,record_) # creates excel file
+            self.sendBtn['state'] = 'active'
+            self.openformBtn['state'] = 'active'
+            db.database().update_candidate_record('candidate2.db',main_record_) 
+            self.clear_search()
         else:
             # the format a record is different from record_ because the key is the last item in the edit record
             record = (name_[0], name_[1], self.phoneEntry.get(), self.interviewerEntry.get(), self.dateEntry.get(), 
@@ -588,6 +637,8 @@ class candidate_ui:
                      int(key_))
             db.database().update_phone_screen_record(db_name,record)
             ex.export_to_excel().export_to_form(db_name,record_)
+            db.database().update_candidate_record('candidate2.db',main_record_) 
+            self.clear_search()
         
     # function needed to sets up interviews
     def setup_interview(self):
@@ -664,26 +715,23 @@ class candidate_ui:
         self.text1.pack(side = 'top')
         self.label2 = Tr.Label(self.interview_form, text = 'Needs inmplentation', justify = LEFT)
         self.label2.pack(side = 'top')
-        self.text2 = Tr.Text(self.interview_form, width = 100, heigh =6)
+        self.text2 = Tr.Text(self.interview_form, width = 100, heigh = 6)
         self.text2.pack(side = 'top')
-        self.middleFrame = Tr.Frame(self.interview_form,)
+        self.middleFrame = Tr.Frame(self.interview_form, width = 100)
         self.label3 = Tr.Label(self.interview_form, text = 'Needs inmplentation', justify = LEFT)
         self.label3.pack(side = 'top')
-        self.text3 = Tr.Text(self.interview_form, width = 100, heigh =6)
+        self.text3 = Tr.Text(self.interview_form, width = 100, heigh = 6)
         self.text3.pack(side = 'top')
         self.label4 = Tr.Label(self.interview_form, text = 'Needs inmplentation', justify = LEFT)
         self.label4.pack(side = 'top')
         self.label4 = Tr.Label(self.interview_form, text = 'Needs inmplentation', justify = LEFT)
         self.label4.pack(side = 'top')
-        self.text4= Tr.Text(self.interview_form, width = 100, heigh =6)
+        self.text4= Tr.Text(self.interview_form, width = 100, heigh = 6)
         self.text4.pack(side = 'top')
         self.label5 = Tr.Label(self.interview_form, text = 'Needs inmplentation', justify = LEFT)
         self.label5.pack(side = 'top')
-        self.text4 = Tr.Text(self.interview_form, width = 100, heigh =6)
+        self.text4 = Tr.Text(self.interview_form, width = 100, heigh = 6)
         self.text4.pack(side = 'top')
-
-
-
 
     # candidate will be disposition
     def disposition_candidate(self, value_):
@@ -983,6 +1031,12 @@ class candidate_ui:
     def find_phone_screen(self, db_name, key_):
         return db.database().get_phone_exist(db_name,key_)
 
+    def format_date(self, date):
 
+        return date[5:7]+ "/" + date[8:10] + "/" + date[2:4]
+
+    def send_form(self, email_, name_, subject_):
+
+        mail.email().send_email(email_, name_, subject_)
 
 
