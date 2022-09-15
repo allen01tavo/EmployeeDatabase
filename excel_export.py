@@ -83,6 +83,3 @@ class export_to_excel:
 		shutil.copyfile('template.xlsx', file_name)
 
 		return file_name
-
-
-
