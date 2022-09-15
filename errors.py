@@ -40,6 +40,8 @@ class errors:
             messagebox.showinfo('SAVED','Candidate has been disposition')
         if choice == 10:
             messagebox.showinfo('Record has been restored')
+        if choice == 11:
+            messagebox.showinfo('Resume has not been uploaded')
     def hints(self, choice):
         
         if choice == 1:
@@ -81,5 +83,6 @@ class errors:
     def restore_message(self):
         message = 'In order to see the record information, the record must be restore'
         messagebox.showinfo('Deleted', message)
+
 
 #End of Class
