@@ -1,7 +1,7 @@
 '''
     written on: August 3, 2022
     filename: candidate_ui.py
-    last update: August 23, 2022
+    last update: September 20, 2022
     @author: Gus_Maturana
 '''
 
@@ -54,6 +54,8 @@ class candidate_ui:
                                         text = 'CLOSE', command = self.root.quit)
         self.btn_disposition = Tr.Button(self.topFrame,\
                                         text = 'DISPOSITION', command = self.candidate_history, width = 12)
+        self.btn_onboarding = Tr.Button(self.topFrame,\
+                                        text = 'ONBOARDING', width = 12)
         
         self.search_entry_lbl = Tr.LabelFrame(self.search_frame, text = 'Criteria: ')
 
@@ -103,6 +105,7 @@ class candidate_ui:
         self.btn_candidate_data.pack(side = 'left')
         self.btn_candidate_history.pack(side = 'left')
         self.btn_disposition.pack(side = 'left')
+        self.btn_onboarding.pack(side = 'left')
         self.btn_close.pack(side = 'right')
         
         self.selection_box.pack(side = 'right')
@@ -232,7 +235,8 @@ class candidate_ui:
         self.new_candidate_win(title)
         self.history_btn = Tr.Button(self.new_candidate_window, text = 'Setup Interview', width = 10, command = self.setup_interview).grid(row = 52, column = 3)
         self.delete_btn = Tr.Button(self.new_candidate_window, text = 'Delete', width = 10, command =self.delete_candidate).grid(row = 90, column = 3)
-        self.pScreen_btn = Tr.Button(self.new_candidate_window, text = 'Phone Screen', width = 10, command =lambda:self.phone_screen_interview(record_))
+        #self.pScreen_btn = Tr.Button(self.new_candidate_window, text = 'Phone Screen', width = 10, command =lambda:self.phone_screen_interview(record_))
+        self.pScreen_btn = Tr.Button(self.new_candidate_window, text = 'Phone Screen', width = 10, command =lambda:self.previous_phone_screenings(record_))
         self.pScreen_btn.grid(row = 90, column = 4)
         self.loadButton['text'] = 'View Resume'
         self.loadButton['command'] = lambda:self.view_resume(key)
@@ -440,9 +444,9 @@ class candidate_ui:
                 self.my_menu.add_command(label = 'Dispositon', command = lambda:self.disposition_candidate(value))
             self.my_menu.add_separator()
             if value[9] == 'YES':
-                self.my_menu.add_command(label = 'Perform Interview', command = lambda:self.perform_interview(value))
+                self.my_menu.add_command(label = 'Perform Interview', command = lambda:self.previous_interviews(value))
             else:
-                self.my_menu.add_command(label = 'Perform Phone Screening', command = lambda:self.phone_screen_interview(value))
+                self.my_menu.add_command(label = 'Perform Phone Screening', command = lambda:self.previous_phone_screenings(value))
             self.my_menu.add_separator()
             self.my_menu.add_command(label = 'Delete', command = lambda:self.delete_candidate_key(value))
 
@@ -452,9 +456,12 @@ class candidate_ui:
                 self.my_menu.grab_release()
 
     # creates a phone screening invertview window
-    def phone_screen_interview(self, record_):
+    def phone_screen_interview(self, record_, flag = True):
         # the candidate name will be displayed on window title
-        title = db.database().get_record('candidate2.db', record_[0]) + '\'s Phone Screen'
+        if flag == True:
+            title = db.database().get_record('candidate2.db', record_[1]) + '\'s Phone Screen'
+        else:
+            title = db.database().get_record('candidate2.db', record_[0]) + '\'s Phone Screen'
 
         self.phone_screen_window = Tr.Tk()                     # creates a new window
         self.phone_screen_window.minsize(700, 700)
@@ -542,7 +549,9 @@ class candidate_ui:
         self.recommendationSelect['values'] = ('Select','INTERVIEW','DISPOSITION')
         self.recommendationSelect.current(0)
 
-        if self.find_phone_screen('interview.db', record_[0]) == False:   
+        key_ = ''
+        if flag == False:
+            key_ = self.ps_unique_key('interview.db')
             self.candidateEntry.insert('end', record_[1] + " " + record_[2])
             self.phoneEntry.insert('end', record_[8])
             self.req_.insert('end', record_[4])
@@ -551,36 +560,43 @@ class candidate_ui:
             self.dateEntry.insert('end', self.format_date(str(date.today())))
         else:
             rcd_ = db.database().get_phone_screen('interview.db', record_[0])
-            self.candidateEntry.insert('end', rcd_[1] + " " + rcd_[2])
-            self.phoneEntry.insert('end', rcd_[3])
-            self.interviewerEntry.insert('end',rcd_[4])
-            self.req_.insert('end',rcd_[15])
-            self.role_.set(rcd_[14])
-            self.dateEntry.insert('end', rcd_[5])
-            self.cCompanyEntry.insert('end',rcd_[7])
-            self.divisionEntry.insert('end',rcd_[6])
-            self.notesEntry_1.insert('end',rcd_[8])
-            self.notesEntry_2.insert('end',rcd_[9])
-            self.managementEntry.set(rcd_[10])
-            self.notesEntry_3.insert('end',rcd_[11])
-            self.recommendationSelect.set(rcd_[12])
-            self.notesEntry.insert('end',rcd_[13])
+            key_ = rcd_[0]
+            self.candidateEntry.insert('end', rcd_[2] + " " + rcd_[3])
+            self.phoneEntry.insert('end', rcd_[4])
+            self.interviewerEntry.insert('end',rcd_[5])
+            self.req_.insert('end',rcd_[16])
+            self.role_.set(rcd_[15])
+            self.dateEntry.insert('end', rcd_[6])
+            self.cCompanyEntry.insert('end',rcd_[8])
+            self.divisionEntry.insert('end',rcd_[7])
+            self.notesEntry_1.insert('end',rcd_[9])
+            self.notesEntry_2.insert('end',rcd_[10])
+            self.managementEntry.set(rcd_[11])
+            self.notesEntry_3.insert('end',rcd_[12])
+            self.recommendationSelect.set(rcd_[13])
+            self.notesEntry.insert('end',rcd_[14])
         
         self.btnFrame = Tr.Frame(self.phone_screen_window, width = 70)
-        self.saveNotesBtn = Tr.Button(self.btnFrame, text = 'SAVE', width = 20, 
-                                      command = lambda:self.save_phone_screen('interview.db', record_[0]))
+        if flag == True:
+            self.saveNotesBtn = Tr.Button(self.btnFrame, text = 'SAVE', width = 20, 
+                                      command = lambda:self.save_phone_screen('interview.db', key_, record_[1]))
+        else:
+            self.saveNotesBtn = Tr.Button(self.btnFrame, text = 'SAVE', width = 20, 
+                                      command = lambda:self.save_phone_screen('interview.db', key_, record_[0]))
         self.saveNotesBtn.pack(side = 'left')
         self.sendBtn = Tr.Button(self.btnFrame, text = 'Send Form', width = 20, 
                                  command = lambda:self.send_form('gusmaturana@icloud.com', 'Carl', 'New Hire'))
         self.sendBtn.pack(side = 'left')
+        #self.openformBtn = Tr.Button(self.btnFrame, text = 'Open Form', width = 20,
+        #                             command = lambda:self.save_phone_screen('interview.db', record_[0]))
         self.openformBtn = Tr.Button(self.btnFrame, text = 'Open Form', width = 20,
-                                     command = lambda:self.save_phone_screen('interview.db', record_[0]))
+                                     command = self.view_phone_screens_forms)
         self.openformBtn.pack(side = 'right')
         self.clsBtn = Tr.Button(self.phone_screen_window, text = 'Close', width = 20,
                                 command = lambda:self.phone_screen_window.destroy())
         self.clsBtn.pack(side = 'bottom')
         self.vResumeBtn = Tr.Button(self.phone_screen_window, text = 'View Resume', width = 20,
-                                    command = lambda:self.view_resume(record_[0]))
+                                    command = lambda:self.view_resume(record_[1]))
         self.vResumeBtn.pack(side = 'bottom')
 
         if self.find_phone_screen('interview.db', record_[0]) == False: 
@@ -603,17 +619,17 @@ class candidate_ui:
         self.interviewerInfo.pack(side = 'bottom')
         self.candidateInfo.pack(side = 'top') 
        
-
     # saves the phone screen form an creates a excel form
-    def save_phone_screen(self, db_name, key_):
+    def save_phone_screen(self, db_name, key_, cNumber_):
         name_ = self.candidateEntry.get().split(' ')
-        record_ = (int(key_), 
+        record_ = (int(key_), cNumber_, 
                     name_[0], name_[1], self.phoneEntry.get(), self.interviewerEntry.get(), self.dateEntry.get(), 
                     self.divisionEntry.get(), self.cCompanyEntry.get(), self.notesEntry_1.get("1.0","end-1c"), 
                     self.notesEntry_2.get("1.0","end-1c"), self.managementEntry.get(), self.notesEntry_3.get("1.0","end-1c"),
                     self.recommendationSelect.get(), self.notesEntry.get("1.0","end-1c"), self.role_.get(), self.req_.get())
         # To update the candidate database
-        mRecord_ = db.database().get_candidate('candidate2.db', key_)
+        mRecord_ = db.database().get_candidate('candidate2.db', cNumber_)
+
         if self.recommendationSelect.get() == 'INTERVIEW':
             inter_ = 'YES'
         else:
@@ -628,9 +644,10 @@ class candidate_ui:
             self.openformBtn['state'] = 'active'
             db.database().update_candidate_record('candidate2.db',main_record_) 
             self.clear_search()
+            self.phone_screen_records(int(cNumber_))
         else:
             # the format a record is different from record_ because the key is the last item in the edit record
-            record = (name_[0], name_[1], self.phoneEntry.get(), self.interviewerEntry.get(), self.dateEntry.get(), 
+            record = (cNumber_, name_[0], name_[1], self.phoneEntry.get(), self.interviewerEntry.get(), self.dateEntry.get(), 
                      self.divisionEntry.get(), self.cCompanyEntry.get(), self.notesEntry_1.get("1.0","end-1c"), 
                      self.notesEntry_2.get("1.0","end-1c"), self.managementEntry.get(), self.notesEntry_3.get("1.0","end-1c"),
                      self.recommendationSelect.get(), self.notesEntry.get("1.0","end-1c"), self.role_.get(), self.req_.get(),
@@ -639,7 +656,8 @@ class candidate_ui:
             ex.export_to_excel().export_to_form(db_name,record_)
             db.database().update_candidate_record('candidate2.db',main_record_) 
             self.clear_search()
-        
+            self.phone_screen_records(int(cNumber_))
+    
     # function needed to sets up interviews
     def setup_interview(self):
 
@@ -673,65 +691,286 @@ class candidate_ui:
         self.setup_interview()
 
     # opens up the window with the interview form
-    def perform_interview(self, value_):
+    def perform_interview(self, value_, flag = True):
         title = value_[1] + " " + value_[2] + '\'s Interview'
         self.interview_form = Tr.Tk()                     # creates a new window
         self.interview_form.minsize(800, 600)
         self.interview_form.title(title)
-        self.topFrame = Tr.Frame(self.interview_form, width = 110)
+        self.leftFrame = Tr.Frame(self.interview_form, width =300)
+        self.leftFrame.pack(side = 'left')
+        self.topFrame = Tr.Frame(self.leftFrame, width = 110)
         self.topFrame.pack(side = 'top')
+        self.rcFrame = Tr.LabelFrame(self.leftFrame,text = 'Overall')
+        self.rightFrame = Tr.Frame(self.interview_form, width = 110, height = 600)
+        self.rightFrame.pack(side = 'right')
 
-        self.clabel = Tr.Label(self.topFrame, text = 'CANDIDATE NAME: ', width = 20, justify = RIGHT)
+        self.clabel = Tr.Label(self.topFrame, text = 'CANDIDATE NAME: ', width = 20, justify = LEFT)
         self.clabel.grid(row = 10, column = 0)
-        self.nameInput = Tr.Entry(self.topFrame, width = 20, justify = RIGHT)
+        self.nameInput = Tr.Entry(self.topFrame, width = 20, justify = LEFT)
         self.nameInput.grid(row = 10, column = 1)
-        self.dateL = Tr.Label(self.topFrame, text = 'DATE: ', width = 20, justify = RIGHT)
+        self.dateL = Tr.Label(self.topFrame, text = 'DATE: ', width = 16, justify = LEFT)
         self.dateL.grid(row = 10, column = 3)
-        self.dateE = Tr.Entry(self.topFrame, width = 20, justify = RIGHT)
+        self.dateE = Tr.Entry(self.topFrame, width = 20, justify = LEFT)
         self.dateE.grid(row = 10, column = 4)
-        self.interviewersLbl= Tr.Label(self.topFrame, text = 'INTERVIEWERS:', width = 20, justify = RIGHT )
+        self.interviewersLbl= Tr.Label(self.topFrame, text = 'INTERVIEWERS:', width = 20, justify = LEFT )
         self.interviewersLbl.grid(row = 11, column= 0)
-        self.interviewersEntry = Tr.Entry(self.topFrame, width = 20, justify = RIGHT)
+        self.interviewersEntry = Tr.Entry(self.topFrame, width = 20, justify = LEFT)
         self.interviewersEntry.grid(row = 11, column = 1)
-        self.reqL = Tr.Label(self.topFrame, text = 'REQUISITION #: ', width = 20, justify = RIGHT)
+        self.reqL = Tr.Label(self.topFrame, text = 'REQUISITION #: ', width = 20, justify = LEFT)
         self.reqL.grid(row = 12, column = 0)
-        self.reqE = Tr.Entry(self.topFrame, width = 20, justify = RIGHT)
+        self.reqE = Tr.Entry(self.topFrame, width = 20, justify = LEFT)
         self.reqE.grid(row = 12, column = 1)
         self.recommendationL = Tr.Label(self.topFrame, text = 'RECOMMENDATION FOR HIRE', width = 24, justify = RIGHT)
         self.recommendationL.grid(row = 16, column = 0)
-        self.recommendationE = ttk.Combobox(self.topFrame, state = 'readonly', width = 16)
+        self.recommendationE = ttk.Combobox(self.topFrame, state = 'readonly', width = 18)
         self.recommendationE.grid(row = 16, column = 1)
         self.recommendationE['values'] = ('Select','Offer', 'No offer', 'Dispositon')
         self.recommendationE.current(0)
-        self.levelRecomendation = Tr.Label(self.topFrame, text = 'LEVEL RECOMMENDATION', width = 24, justify = RIGHT)
+        self.levelRecomendation = Tr.Label(self.topFrame, text = 'LEVEL RECOMMENDATION:', width = 24, justify = RIGHT)
         self.levelRecomendation.grid(row = 17, column = 0)
-        self.levelCombobox = ttk.Combobox(self.topFrame, state = 'readonly', width = 16)
+        self.levelCombobox = ttk.Combobox(self.topFrame, state = 'readonly', width = 18)
         self.levelCombobox.grid(row = 17, column = 1)
         self.levelCombobox['values'] = ('Select', 'L1', 'L2', 'L3', 'L4','L5', 'L6', 'L7')
         self.levelCombobox.current(0)
-        self.label1 = Tr.Label(self.interview_form, text = 'Candiate\'s Technical Strenghts', justify = LEFT)
-        self.label1.pack(side = 'top')
-        self.text1 = Tr.Text(self.interview_form, width = 100, heigh = 6)
+        self.lable1Frame = Tr.LabelFrame(self.leftFrame,text = 'Candidate\'s Technical Strenghts')
+        self.lable1Frame.pack(side = 'top')
+        self.text1 = Tr.Text(self.lable1Frame, width = 100, heigh = 3)
         self.text1.pack(side = 'top')
-        self.label2 = Tr.Label(self.interview_form, text = 'Needs inmplentation', justify = LEFT)
-        self.label2.pack(side = 'top')
-        self.text2 = Tr.Text(self.interview_form, width = 100, heigh = 6)
+        self.lable2Frame = Tr.LabelFrame(self.leftFrame,text = 'Candidate\'s Technical Needs')
+        self.lable2Frame.pack(side = 'top')
+
+        self.text2 = Tr.Text(self.lable2Frame, width = 100, heigh = 3)
         self.text2.pack(side = 'top')
-        self.middleFrame = Tr.Frame(self.interview_form, width = 100)
-        self.label3 = Tr.Label(self.interview_form, text = 'Needs inmplentation', justify = LEFT)
+        self.rcFrame.pack(side = 'top')
+        self.middleFrame = Tr.Frame(self.leftFrame, width = 100)
+        self.rExpLabel = Tr.Label(self.rcFrame, text = 'RELATABLE EXPERICE: ')
+        self.rExpLabel.grid(row = 0, column = 0)
+        self.rcExpComboBox = ttk.Combobox(self.rcFrame, state = 'readonly', width = 16)
+        self.rcExpComboBox['values'] = ('Select', 'Outstanding', 'Satisfactory', 'Needs Improvement', 'Not Applicable')
+        self.rcExpComboBox.grid(row = 0, column = 1)
+        self.rcExpComboBox.current(0)
+        self.commSkillsLabel = Tr.Label(self.rcFrame, text = 'COMMUNICATION SKILLS: ')
+        self.commSkillsLabel.grid(row = 1, column = 0)
+        self.commSkillsComboBox = ttk.Combobox(self.rcFrame, state = 'readonly', width = 16)
+        self.commSkillsComboBox['values'] = ('Select', 'Outstanding', 'Satisfactory', 'Needs Improvement', 'Not Applicable')
+        self.commSkillsComboBox.grid(row = 1, column = 1)
+        self.commSkillsComboBox.current(0)
+        self.techApSkillsLabel = Tr.Label(self.rcFrame, text = 'TECHNICAL APTITUDE/SKILLS: ')
+        self.techApSkillsLabel.grid(row = 2, column = 0)
+        self.techApSkillsComboBox = ttk.Combobox(self.rcFrame, state = 'readonly', width = 16)
+        self.techApSkillsComboBox['values'] = ('Select', 'Outstanding', 'Satisfactory', 'Needs Improvement', 'Not Applicable')
+        self.techApSkillsComboBox.grid(row = 2, column = 1)
+        self.techApSkillsComboBox.current(0)
+        self.knowLabel = Tr.Label(self.rcFrame, text = 'KNOWLEDGE OF INDUSTRY/ FUNCTION/EDUCATION: ')
+        self.knowLabel.grid(row = 3, column = 0)
+        self.knowComboBox = ttk.Combobox(self.rcFrame, state = 'readonly', width = 16)
+        self.knowComboBox['values'] = ('Select', 'Outstanding', 'Satisfactory', 'Needs Improvement', 'Not Applicable')
+        self.knowComboBox.grid(row = 3, column = 1)
+        self.knowComboBox.current(0)
+
+        str_label = 'PLEASE DISCUSS AT LEAST 2 OF THE FOLLOWING VALUE OBJECTIVES AND USE THESE QUESTIONS AS GUIDE\n' + \
+                    'QUESTIONS AS GUIDE FOR YOUR BEHAVIORAL PORTION OF THE INTERVIEW'
+        str_label2 = 'INTEGRITY - we never compromise our values in pursuit of business performance and sucess.\n' + \
+                     'Discuss a time when your integrity was challenged. How did you handle it? Tell me about a\n' + \
+                     'business situation when you felt honesty was inappropriate. Why? What did you do?'
+        self.label3 = Tr.Label(self.leftFrame, text = str_label, justify = LEFT)
         self.label3.pack(side = 'top')
-        self.text3 = Tr.Text(self.interview_form, width = 100, heigh = 6)
+        self.lable3Frame = Tr.LabelFrame(self.leftFrame,text = str_label2)
+        self.lable3Frame.pack(side = 'top')
+        self.text3 = Tr.Text(self.lable3Frame, width = 100, heigh = 3)
         self.text3.pack(side = 'top')
-        self.label4 = Tr.Label(self.interview_form, text = 'Needs inmplentation', justify = LEFT)
+        str_label3 = 'EXCELLENCE - we work relentlessly to obtain the highest quality result through continuous and flawles execution'
+        str_label4 = 'Can you tell me about a time you made a mistake at work and how you recovered? When have you seen your \n' + \
+                     'tenacity or resilience rally pay off in a professional setting? What was the outcome'
+        self.label4 = Tr.Label(self.leftFrame, text = str_label3, justify = LEFT)
         self.label4.pack(side = 'top')
-        self.label4 = Tr.Label(self.interview_form, text = 'Needs inmplentation', justify = LEFT)
-        self.label4.pack(side = 'top')
-        self.text4= Tr.Text(self.interview_form, width = 100, heigh = 6)
+        self.lable4Frame = Tr.LabelFrame(self.leftFrame,text = str_label4)
+        self.lable4Frame.pack(side = 'top')
+        self.text4 = Tr.Text(self.lable4Frame, width = 100, heigh = 3)
         self.text4.pack(side = 'top')
-        self.label5 = Tr.Label(self.interview_form, text = 'Needs inmplentation', justify = LEFT)
+        str_label5 = 'RESPECT - we realize that success comes from diverse ideas and talent working together to achieve our goals.\n' + \
+                     'Describe a situation werhe others you were working with on a project disagreed with your ideas. What did you\n' + \
+                     'do? Describe a situation in which you had to arrive at a compromise or help others to compromise. What was your\n' + \
+                     'role? What steps did you take? What was the result?'
+        self.label5 = Tr.LabelFrame(self.leftFrame, text = str_label5)
         self.label5.pack(side = 'top')
-        self.text4 = Tr.Text(self.interview_form, width = 100, heigh = 6)
+        self.text4 = Tr.Text(self.label5, width = 100, heigh = 3)
         self.text4.pack(side = 'top')
+        str_label6 = 'NOTES'
+        self.lable6Frame = Tr.LabelFrame(self.leftFrame,text = str_label6)
+        self.lable6Frame.pack(side = 'top')
+        self.text5 = Tr.Text(self.lable6Frame, width = 100, heigh = 3)
+        self.text5.pack(side = 'top')
+
+
+        self.savebtn = Tr.Button(self.rightFrame, width = 20, text = 'SAVE')
+        self.savebtn.pack(side = 'top')
+        self.sendForm_btn = Tr.Button(self.rightFrame, width = 20, text = 'Send FORM')
+        self.sendForm_btn.pack(side = 'top')
+        self.openForm_btn = Tr.Button(self.rightFrame, width = 20, text = 'OPEN FORM')
+        self.openForm_btn.pack(side = 'top')
+        self.vResume_btn = Tr.Button(self.rightFrame, width = 20, text = 'VIEW RESUME',
+                                     command = lambda:self.view_resume(value_[0]))
+        self.vResume_btn.pack(side = 'top')
+        self.interClose_btn = Tr.Button(self.rightFrame, width = 20, text = 'CLOSE',
+                                   command = lambda:self.close_window(self.interview_form))
+        self.interClose_btn.pack(side = 'bottom')
+
+        if flag == False:
+            self.nameInput.insert('end',value_[1] + ' ' + value_[2])
+            self.dateE.insert('end',self.format_date(str(date.today())))
+            self.reqE.insert('end',value_[4])
+        else:
+            self.nameInput.insert('end',value_[2] + ' ' + value_[3])
+
+    # saves the interveiw record
+    def save_interview_record(self, db_name, key_, cNumber_):
+        name_ = self.nameInput.get().split(' ')
+        record_ = (int(key_), cNumber_, 
+                    name_[0], name_[1], self.phoneEntry.get(), self.interviewerEntry.get(), self.dateEntry.get(), 
+                    self.divisionEntry.get(), self.cCompanyEntry.get(), self.notesEntry_1.get("1.0","end-1c"), 
+                    self.notesEntry_2.get("1.0","end-1c"), self.managementEntry.get(), self.notesEntry_3.get("1.0","end-1c"),
+                    self.recommendationSelect.get(), self.notesEntry.get("1.0","end-1c"), self.role_.get(), self.req_.get())
+        # To update the candidate database
+        mRecord_ = db.database().get_candidate('candidate2.db', cNumber_)
+
+        if self.recommendationSelect.get() == 'INTERVIEW':
+            offer_ = 'YES'
+        else:
+            offer_ = 'Dispositon'
+        main_record_ = (mRecord_[1], mRecord_[2], mRecord_[3], mRecord_[4], mRecord_[5], mRecord_[6], mRecord_[8], 
+                        mRecord_[7], mRecord_[9], mRecord_[0])
+        
+        if self.find_phone_screen('interview.db', int(key_)) == False:
+            db.database().insert_record_phone_screen(db_name, record_)
+            ex.export_to_excel().export_to_form(db_name,record_) # creates excel file
+            self.sendBtn['state'] = 'active'
+            self.openformBtn['state'] = 'active'
+            db.database().update_candidate_record('candidate2.db',main_record_) 
+            self.clear_search()
+            self.phone_screen_records(int(cNumber_))
+        else:
+            # the format a record is different from record_ because the key is the last item in the edit record
+            record = (cNumber_, name_[0], name_[1], self.phoneEntry.get(), self.interviewerEntry.get(), self.dateEntry.get(), 
+                     self.divisionEntry.get(), self.cCompanyEntry.get(), self.notesEntry_1.get("1.0","end-1c"), 
+                     self.notesEntry_2.get("1.0","end-1c"), self.managementEntry.get(), self.notesEntry_3.get("1.0","end-1c"),
+                     self.recommendationSelect.get(), self.notesEntry.get("1.0","end-1c"), self.role_.get(), self.req_.get(),
+                     int(key_))
+            db.database().update_phone_screen_record(db_name,record)
+            ex.export_to_excel().export_to_form(db_name,record_)
+            db.database().update_candidate_record('candidate2.db',main_record_) 
+            self.clear_search()
+            self.phone_screen_records(int(cNumber_))
+
+    def previous_phone_screenings(self, record_):
+
+        title = record_[1] # show the candidate's name
+        self.view_phone_screens_forms = Tr.Tk()                     # creates a new window
+        self.view_phone_screens_forms.minsize(500, 300)
+        
+        self.view_phone_screens_forms.title(title)
+        dataCols = ('#','C-#','DATE','INTERVIEWER', 'SECTOR','RECOMENDATION')
+
+        self.ppsFrame = Tr.Frame(self.view_phone_screens_forms)
+
+        self.psLbl = Tr.LabelFrame(self.ppsFrame, text = 'PREVIOUS PHONE SCREENINGS')
+        self.psLbl.pack(side = 'top')
+        self.phoneScreenList = ttk.Treeview(self.psLbl, height = 30, columns = dataCols, show = 'headings')
+        self.phoneScreenList.pack(side = 'top')
+
+        # The following lines of codes format the width of the columns inside the treeview (self.recordLIstColumn)
+        self.phoneScreenList.column(dataCols[0], width = 60, anchor ='center')
+        self.phoneScreenList.column(dataCols[1], width = 60, anchor ='center')
+        self.phoneScreenList.column(dataCols[2], width = 130)
+        self.phoneScreenList.column(dataCols[3], width = 130)
+        self.phoneScreenList.column(dataCols[4], width = 130)
+
+        self.close_btn = Tr.Button(self.view_phone_screens_forms, text = 'Close', width = 12,
+                                  command = lambda:self.close_window(self.view_phone_screens_forms))
+        self.close_btn.pack(side = 'bottom')
+        self.new_btn = Tr.Button(self.view_phone_screens_forms, text = 'New', width = 12,
+                                command = lambda:self.phone_screen_interview(record_, False))
+        self.new_btn.pack(side = 'top')
+        self.ppsFrame.pack(side = 'top', fill="both", expand=True)
+        self.phoneScreenList.bind("<Double-Button-1>", self.OnClick_phone_screening)
+        self.phoneScreenList.bind("<Button-2>", self.OnRightClick_phone_screening)
+
+        for col in dataCols:
+            self.phoneScreenList.heading(col, text = col.title())
+        
+        self.phone_screen_records(int(record_[0]))
+
+    def previous_interviews(self, record_):
+
+        title = record_[1] # show the candidate's name
+        self.view_interview_forms = Tr.Tk()                     # creates a new window
+        self.view_interview_forms.minsize(500, 300)
+        
+        self.view_interview_forms.title(title)
+        dataCols = ('#','C-#','DATE','INTERVIEWER', 'REQUISITION','RECOMENDATION')
+
+        self.interview_frame = Tr.Frame(self.view_interview_forms)
+
+        self.interLbl = Tr.LabelFrame(self.interview_frame, text = 'PREVIOUS INTERVIEWS')
+        self.interLbl.pack(side = 'top')
+        self.interviewList = ttk.Treeview(self.interLbl, height = 30, columns = dataCols, show = 'headings')
+        self.interviewList.pack(side = 'top')
+
+        # The following lines of codes format the width of the columns inside the treeview (self.recordLIstColumn)
+        self.interviewList.column(dataCols[0], width = 60, anchor ='center')
+        self.interviewList.column(dataCols[1], width = 60, anchor ='center')
+        self.interviewList.column(dataCols[2], width = 130)
+        self.interviewList.column(dataCols[3], width = 130)
+        self.interviewList.column(dataCols[4], width = 130)
+
+        self.close_interview_btn = Tr.Button(self.view_interview_forms, text = 'Close', width = 12,
+                                  command = lambda:self.close_window(self.view_interview_forms))
+        self.close_interview_btn.pack(side = 'bottom')
+        self.new_interview_btn = Tr.Button(self.view_interview_forms, text = 'New', width = 12,
+                                command = lambda:self.perform_interview(record_, False))
+        self.new_interview_btn.pack(side = 'top')
+        self.interview_frame.pack(side = 'top', fill="both", expand=True)
+        self.interviewList.bind("<Double-Button-1>", self.OnClick_phone_screening)
+
+        for col in dataCols:
+            self.interviewList.heading(col, text = col.title())
+        
+        self.interview_records(int(record_[0]))
+
+    def close_window(self, obj):
+        obj.destroy()
+
+    def OnClick_phone_screening(self, event):
+        
+        selection = self.phoneScreenList.focus()
+        value = self.phoneScreenList.item(selection).get('values')
+        # Opens the edit candidate window
+        # and passes the candidate id#
+        self.phone_screen_interview(value)
+
+    def OnRightClick_phone_screening(self, event):
+        # .identify_row(event.y) gets the value store in the treeview
+        selection = self.phoneScreenList.identify_row(event.y)
+        value = self.phoneScreenList.item(selection).get('values')
+
+        #print(value[9])
+        # creates a popup menu and its listed items
+        self.ps_menu = Menu(self.phoneScreenList, tearoff=0)
+        self.ps_menu.add_command(label = 'View Phone Screen', command = lambda:self.phone_screen_interview(value))
+        self.ps_menu.add_separator()
+        self.ps_menu.add_command(label = 'Delete', command = lambda:self.remove_phone_screening(value))
+
+        try:
+                self.ps_menu.tk_popup(event.x_root, event.y_root)
+        finally:
+                self.ps_menu.grab_release()
+
+    def remove_phone_screening(self, record_):
+
+        db.database().remove_record_phone_screening('interview.db',int(record_[0]))
+        ers.errors().error_messages(12)
+
+        self.phone_screen_records(int(record_[1]))
 
     # candidate will be disposition
     def disposition_candidate(self, value_):
@@ -777,6 +1016,7 @@ class candidate_ui:
         ers.errors().delete_message(record_[1])
         self.show_Deleted_history()
     # Clears the recordListColum
+
     def clear_list(self):
     #this process can be done two ways
         # way # 1
@@ -877,6 +1117,43 @@ class candidate_ui:
         self.records_lable.config(text = "TOTAL RECORDS: " + str(len(self.recordListColumn.get_children())))
         count = 0    
     
+    def phone_screen_records(self, key_):
+        cnt = 0
+
+        for item in self.phoneScreenList.get_children():
+            self.phoneScreenList.delete(item)
+
+        for item in db.database().db_print_phone_screen_records('interview.db'):
+            print(item)
+            if item[1] == key_:
+                cnt = cnt + 1
+                list_ = [ item[0], item[1], item[6], item[5], item[7],item[13]]
+                if cnt % 2 != 0:
+                    self.phoneScreenList.insert('', 'end', values = list_, tags = ('oddrow'))
+                else:
+                    self.phoneScreenList.insert('', 'end', values = list_, tags = ('evenrow'))
+
+        self.phoneScreenList.tag_configure('oddrow', background = 'lightblue')
+        cnt = 0
+
+    def interview_records(self, key_):
+        cnt = 0
+        for item in self.interviewList.get_children():
+            self.interviewList.delete(item)
+
+        for item in db.database().db_print_interview_records('interview.db'):
+            print(item)
+            if item[1] == key_:
+                cnt = cnt + 1
+                list_ = [ item[0], item[1], item[6], item[5], item[7],item[13]]
+                if cnt % 2 != 0:
+                    self.interviewList.insert('', 'end', values = list_, tags = ('oddrow'))
+                else:
+                    self.interviewList.insert('', 'end', values = list_, tags = ('evenrow'))
+
+        self.phoneScreenList.tag_configure('oddrow', background = 'green')
+        cnt = 0
+
     # Clears the search criteria 
     # this helper function can also be used to refresh the patient list after a patient
     # has been added or updated        
@@ -1027,9 +1304,21 @@ class candidate_ui:
 
         return key_    
 
+    def ps_unique_key(self, db_):
+
+        key_ = random.randint(1047,9999)
+
+        for item in db.database().db_print_phone_screen_records(db_):
+            if key_ == item[0]:
+                ps_unique_key(db_)
+
+        return key_    
     # returns true if the phone screening has been performed
     def find_phone_screen(self, db_name, key_):
-        return db.database().get_phone_exist(db_name,key_)
+        rsl = db.database().get_phone_exist(db_name,key_)
+        print('rsl inside find_phone_screen')
+        print(rsl)
+        return rsl
 
     def format_date(self, date):
 
