@@ -58,9 +58,10 @@ class database:
                            TIME_                            TEXT  NOT NULL,
                            CURRENT_COMP                     TEXT  NOT NULL);''')
         
-        # A table storing patient data
+        # A table storing phone screening information
         cursor.execute('''CREATE TABLE IF NOT EXISTS PHONE_SCREENING (
                             ID_KEY_PRIMARY               KEY   NOT NULL,
+                            CANDIDATE_ID                 INT   NOT NULL,
                             NAME                         TEXT  NOT NULL,
                             LASTNAME                     TEXT  NOT NULL,
                             PHONE                        TEXT  NOT NULL,
@@ -76,6 +77,29 @@ class database:
                             ASSESSMENT                   TEXT  NOT NULL,
                             ROLE                         TEXT  NOT NULL,
                             REQ                          TEXT  NOT NULL);''')
+
+        # A table storing the interview information
+        cursor.execute('''CREATE TABLE IF NOT EXISTS INTERVIEW (
+                            ID_KEY                       KEY NOT NULL,
+                            CANDIDATE_ID                 INT NOT NULL,
+                            NAME                         TEXT NOT NULL,
+                            LASTNAME                     TEXT NOT NULL,
+                            DATE_                        TEXT NOT NULL,
+                            INTERVIEWER                  TEXT NOT NULL,
+                            REQNUMBER                    TEXT NOT NULL,
+                            RECOMMENDATION               TEXT NOT NULL,
+                            LEVEL                        TEXT NOT NULL,
+                            EXTRENGHT                    TEXT NOT NULL,
+                            NEEDS                        TEXT NOT NULL,
+                            RELATABLE_EXPERIENCE         TEXT NOT NULL,
+                            COMM_SKILLS                  TEXT NOT NULL,
+                            TECH_APT_SKILLS              TEXT NOT NULL,
+                            INDUSTRY_FUNC_EDU            TEXT NOT NULL,
+                            INTEGRITY                    TEXT NOT NULL,
+                            EXCELLENCE                   TEXT NOT NULL,
+                            RESPECT                      TEXT NOT NULL,
+                            NOTES                        TEXT NOT NULL,
+                            EXPECTATIONS                 TEXT NOT NULL);''')
         table.commit()
         
         table.close()
@@ -93,10 +117,15 @@ class database:
         table.commit()
 
     def insert_record_phone_screen(self, db_name, record):
-        #insert items into CANDIDATE table
+        #insert items into PHONE_SCREENING table
         table = sql.connect(db_name)
-        table.execute('INSERT INTO  PHONE_SCREENING VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', record)
+        table.execute('INSERT INTO  PHONE_SCREENING VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', record)
         table.commit()
+
+    def insert_record_interview(self, db_name, record):
+        #insert items into INTERVIEW
+        table.execute('INSERT INTO  INTERVIEW VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', record)
+        table.commit()        
     
     def insert_comments(self, db_name, record):
         #insert items into COMMENTS table
@@ -123,7 +152,8 @@ class database:
 
     def update_phone_screen_record(self, db_name, record):
         table = sql.connect(db_name)
-        statement = '''UPDATE PHONE_SCREENING SET NAME                 = '%s',                     
+        statement = '''UPDATE PHONE_SCREENING SET CANDIDATE_ID         = '%d',
+                                                  NAME                 = '%s',                     
                                                   LASTNAME             = '%s',
                                                   PHONE                = '%s',
                                                   INTERVIEWER          = '%s',
@@ -141,7 +171,31 @@ class database:
                                                   WHERE ID_KEY_PRIMARY = '%d' ''' %record
         table.execute(statement)
         table.commit()
-            
+
+    def update_interview_record(self, db_name, record):
+        table = sql.connect(db_name)
+        statement = '''UPDATE INTERVIEW SET CANDIDATE_ID         = '%d',        
+                                            CANDIDATE_ID         = '%s',
+                                            NAME                 = '%s',        
+                                            LASTNAME             = '%s',      
+                                            DATE_                = '%s',        
+                                            INTERVIEWER          = '%s',        
+                                            REQNUMBER            = '%s',        
+                                            RECOMMENDATION       = '%s',        
+                                            LEVEL                = '%s',        
+                                            EXTRENGHT            = '%s',        
+                                            NEEDS                = '%s',        
+                                            RELATABLE_EXPERIENCE = '%s',        
+                                            COMM_SKILLS          = '%s',        
+                                            TECH_APT_SKILLS      = '%s',        
+                                            INDUSTRY_FUNC_EDU    = '%s',        
+                                            INTEGRITY            = '%s',        
+                                            EXCELLENCE           = '%s',        
+                                            RESPECT              = '%s',        
+                                            NOTES                = '%s',        
+                                            EXPECTATIONS         = '%s',   
+                                            WHERE ID_KEY         = '%s' ''' %record     
+
     def general_search_query(self, db_name, record):
         table = sql.connect(db_name)
         curser = table.cursor()
@@ -158,7 +212,33 @@ class database:
                            "OR CONTACTINFO LIKE '%" + record  + "%'" + \
                            "OR INTERVIEW LIKE '%" + record + "%" + \
                            "OR OFFER LIKE '%" + record + "%"
-        
+
+    def general_search_query_ph_s(self, db_name, record):
+        table = sql.connect(db_name)
+        curser = table.cursor()
+        condition = "SELECT * \
+                        FROM  PHONE_SCREENING \
+                        WHERE ID_KEY_PRIMARY LIKE '%" + record  + "%'" +  \
+                           "OR CANDIDATE_ID LIKE ''%" + record  + "%'" +  \
+                           "OR NAME LIKE ''%" + record  + "%'" +  \
+                           "OR LASTNAME LIKE '%" + record  + "%'"  + \
+                           "OR PHONE LIKE '%" + record  + "%'"  + \
+                           "OR INTERVIEWER LIKE '%" + record  + "%'"  + \
+                           "OR DIVISION LIKE '%" + record + "%" + \
+                           "OR DATE_ LIKE '%" + record  + "%'"  + \
+                           "OR CURRENTCOMPANY LIKE '%" + record + "%" + \
+                           "OR REASON LIKE '%" + record  + "%'" + \
+                           "OR TECHNICAL LIKE '%" + record + "%" + \
+                           "OR MANAGEMENT LIKE '%" + record + "%" + \
+                           "OR MANAGEMMENT_COMM LIKE '%" + record + "%" + \
+                           "OR RECOMENDATION LIKE '%" + record + "%" + \
+                           "OR ASSESSMENT LIKE '%" + record + "%" + \
+                           "OR ROLE LIKE '%" + record + "%" + \
+                           "OR REQ LIKE '%" + record + "%"
+    
+    def general_search_interview(self, db_name, record):
+        pass
+
     def remove_record(self, db_name, tbl, record):
         # Deletes item from Database
         table = sql.connect(db_name)
@@ -175,6 +255,16 @@ class database:
         table = sql.connect(db_name)
         table.execute('DELETE FROM CANDIDATE WHERE VALUES (?,?,?,?)', (item,))
         table.commit()
+
+    def remove_record_phone_screening(self, db_name, record):
+        # Deletes item from Database
+        table = sql.connect(db_name)
+
+        table.execute('DELETE FROM PHONE_SCREENING WHERE ID_KEY_PRIMARY=?', (record,))
+        table.commit()
+            
+        table.close()
+
         
     def db_print(self, db_name):
         # prints information stored in the database
@@ -195,12 +285,62 @@ class database:
             for row in results:
                 data.append(row)
         except:
-            ers.errors().error_messages(5)
-            print('An Error Happen here')
+            ers.errors().error_messages(5, 'Something went wrong with db_print function')
         
         # disconnect from server
         table.close()
         return data
+
+    def db_print_phone_screen_records(self, db_name):
+        # prints information stored in the database
+        table = sql.connect(db_name)
+        # prepare a cursor object using cursor() method
+        cursor = table.cursor()
+        # Prepare SQL query to INSERT a record into the database.
+        condition = "SELECT * FROM PHONE_SCREENING" # Displays all items stored in database
+
+        # Creates a list to store output values
+        data = [] 
+        
+        try:
+            # Execute the SQL command
+            cursor.execute(condition)
+            # Fetch all the rows in a list of lists.
+            results = cursor.fetchall()
+            for row in results:
+                data.append(row)
+        except:
+            ers.errors().error_messages(5, 'Something went wrong with db_print_phone_screen_records')
+        
+        # disconnect from server
+        table.close()
+        return data
+    
+    def db_print_interview_records(self, db_name):
+        # prints information stored in the database
+        table = sql.connect(db_name)
+        # prepare a cursor object using cursor() method
+        cursor = table.cursor()
+        # Prepare SQL query to INSERT a record into the database.
+        condition = "SELECT * FROM INTERVIEW" # Displays all items stored in database
+
+        # Creates a list to store output values
+        data = [] 
+        
+        try:
+            # Execute the SQL command
+            cursor.execute(condition)
+            # Fetch all the rows in a list of lists.
+            results = cursor.fetchall()
+            for row in results:
+                data.append(row)
+        except:
+            ers.errors().error_messages(5, 'Something went wrong with db_print_phone_screen_records')
+        
+        # disconnect from server
+        table.close()
+        return data
+
     
     def db_patient_history_print(self, db_name):
         # prints information stored in the database
@@ -208,7 +348,7 @@ class database:
         # prepare a cursor object using cursor() method
         cursor = table.cursor()
         # Prepare SQL query to INSERT a record into the database.
-        condition = "SELECT * FROM PATIENT_HIST"
+        condition = "SELECT * FROM PATIENT_HYST"
 
         # Creates a list to store output values
         data = [] 
@@ -231,7 +371,7 @@ class database:
                 value = ( id_, gender_, weight_, diagnosis_, date_, ethnicity_, alergies_)
                 data.append(value)
         except:
-            ers.errors().error_messages(5)
+            ers.errors().error_messages(5, 'Something went wrong with db_patient_history_print')
         
         # disconnect from server
         table.close()
@@ -266,7 +406,7 @@ class database:
                 value = ( id_, bsugar_, bpressure_, exercise_, frequency_, hours_)
                 data.append(value)
         except:
-            ers.errors().error_messages(5)
+            ers.errors().error_messages(5, 'Something went wrong with db_patient_data_print')
         
         # disconnect from server
         table.close()
@@ -362,12 +502,45 @@ class database:
                 for n in range (0, len(list_)):
                     list_.pop()
         except:
-            ers.errors().error_messages(5)   
+            ers.errors().error_messages(5,'Something went wrong with print_results')   
                 
         # disconnect from server
         table.close()
         return data
-    
+
+    def print_phone_screen_results(self, db_name, key):
+        # prints information stored in the database
+        table = sql.connect(db_name)
+        # prepare a cursor object using cursor() method
+        cursor = table.cursor()
+        # Prepare SQL query to INSERT a record into the database.
+        condition = "SELECT * FROM PHONE_SCREENING \
+                            WHERE CANDIDATE_ID == '%d'" % (key)
+
+        # Creates a list to store output values
+        data = []
+        list_ = []
+        
+        try:
+            cursor.execute(condition)        # Execute the SQL command   
+            # Fetch all the rows in a list of lists.
+            results = cursor.fetchall()
+            
+            for row in results:
+                for n in range (0,len(row)):
+                    list_.insert(n,row[n])  # the list is then converted into a tuple
+                
+                data.append(tuple(list_))
+                #clears the list_
+                for n in range (0, len(list_)):
+                    list_.pop()
+        except:
+            ers.errors().error_messages(5, 'Something went wrong with print_phone_screen_results')   
+                
+        # disconnect from server
+        table.close()
+        return data
+
     def db_general_print(self, db_name, condition):
         # prints information stored in the database
         table = sql.connect(db_name)
@@ -393,7 +566,7 @@ class database:
                 for n in range (0, len(list_)):
                     list_.pop()
         except:
-            ers.errors().error_messages(5)   
+            ers.errors().error_messages(5, 'Something went wrong with db_general_print')   
                 
         # disconnect from server
         table.close()
@@ -416,7 +589,10 @@ class database:
         
         table = sql.connect(db_name)
         cursor = table.cursor()
-        
+        '''
+        condition = "SELECT * FROM PHONE_SCREENING \
+               WHERE ID_KEY_PRIMARY == '%d'" % (ID)
+        '''
         condition = "SELECT * FROM PHONE_SCREENING \
                WHERE ID_KEY_PRIMARY == '%d'" % (ID)
         
