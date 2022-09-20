@@ -18,7 +18,7 @@ class errors:
         '''
         Constructor
         '''
-    def error_messages(self, choice):
+    def error_messages(self, choice, message = ''):
         
         if choice == 1:
             messagebox.showinfo('Error 1:', 'Please enter a blood sugar level value')
@@ -29,7 +29,7 @@ class errors:
         if choice == 4:
             messagebox.showinfo('Error 4:', 'There is not value')
         if choice == 5:
-            messagebox.showinfo('UNABLE TO FETCH DATA:', 'Check Query algorithm')
+            messagebox.showinfo('UNABLE TO FETCH DATA:', message)
         if choice == 6:
             messagebox.showinfo('Implementation needed')
         if choice == 7:
@@ -42,6 +42,8 @@ class errors:
             messagebox.showinfo('Record has been restored')
         if choice == 11:
             messagebox.showinfo('Resume has not been uploaded')
+        if choice == 12:
+            messagebox.showinfo('Phone screening record has been deleted')
     def hints(self, choice):
         
         if choice == 1:
