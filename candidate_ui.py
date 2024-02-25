@@ -9,14 +9,19 @@ import tkinter as Tr
 import tkinter.ttk as ttk #from Tkinter import Tk as ttk
 import database as db
 import errors as ers
+import onboard as on
+import interview as itw
 import excel_export as ex
 from tkinter.constants import VERTICAL
 from tkinter import *
+from tkinter import messagebox
 from tkcalendar import *
 import random
 from datetime import date
 import email as mail
-from email import messages 
+from email import browse 
+from datetime import datetime
+
 
 
 class candidate_ui:
@@ -28,7 +33,7 @@ class candidate_ui:
         # Create the main window Widget
         # Main application page
         self.dataCols = ('#', 'NAME', 'LAST NAME', 'DEGREE','REQ NUMBER','POSITION','EMAIL ADDRESS',\
-                         'CONTACT INFO', 'CLEARANCE', 'INTREVIEW', 'OFFER')
+                         'CLEARANCE','CONTACT INFO','INTREVIEW', 'OFFER')
  
         self.root = Tr.Tk()                         # creates a main application window
         self.root.title(title)                      # application window title
@@ -38,7 +43,7 @@ class candidate_ui:
         self.frame_5 = Tr.Frame(self.root)
         self.frame_3 = Tr.Frame(self.root)
         self.frame_4 = Tr.Frame(self.root)
-        self.topFrame = Tr.LabelFrame(self.frame_1, text = 'OPTIONS:')
+        self.topFrame = Tr.LabelFrame(self.frame_1, text = 'VIEWOPTIONS:')
         self.internal_frame = Tr.Frame(self.frame_1)            # to include the search feature
         self.search_frame = Tr.Frame(self.internal_frame)       # to include the search feature
         
@@ -55,11 +60,11 @@ class candidate_ui:
         self.btn_disposition = Tr.Button(self.topFrame,\
                                         text = 'DISPOSITION', command = self.candidate_history, width = 12)
         self.btn_onboarding = Tr.Button(self.topFrame,\
-                                        text = 'ONBOARDING', width = 12)
+                                        text = 'ONBOARDING', width = 12, command = on.onboard().onbarding_window)
         
         self.search_entry_lbl = Tr.LabelFrame(self.search_frame, text = 'Criteria: ')
 
-        self.btn_search = Tr.Button(self.search_entry_lbl, bg = "blue",\
+        self.btn_search = Tr.Button(self.search_entry_lbl, bg = "green",\
                                         text = 'SEARCH', command = self.search_)
         
         self.clear_search_btn = Tr.Button(self.search_entry_lbl, \
@@ -94,7 +99,7 @@ class candidate_ui:
         # Binding the recordListColumn and search_entry to keyboard buttons
         self.recordListColumn.bind("<Double-Button-1>", self.OnClick)
         self.search_entry.bind("<Return>",self.Event_Driven_Search)
-        self.recordListColumn.bind("<Button-2>", self.OnRightClick)
+        self.recordListColumn.bind("<Button-3>", self.OnRightClick)
         
         self.candidatetLbl.pack(side = 'top')
         self.recordListColumn.pack(side = 'top')
@@ -156,7 +161,7 @@ class candidate_ui:
         
         self.root.destroy()
     
-    # This module creates a new patient
+    # This module creates a new candidate
     def new_candidate_win(self, title = 'NEW CANDIDATE'):
         
         title_ = title
@@ -302,7 +307,10 @@ class candidate_ui:
                         record_ = (name_, lname_, deg_, reqn_, plev_, email_, cinfo_, clear_, inter_, offer_, key_)
                         db.database().update_candidate_record('candidate2.db',record_)  
                         self.clear_search() # refreshes the treeview to include the new record
-                        ers.errors().error_messages(8)
+                        #ers.errors().error_messages(8)
+                        messagebox.showinfo('SAVED','Record has been Updated')
+                        self.new_candidate_window.focus_force()
+
 
     # Clear all Entries and focus on nameEntry
     def clear_(self):
@@ -322,17 +330,19 @@ class candidate_ui:
         self.column_headings()
         self.clear_list()
     
-    # Cancels the new new_patient_win
-    # This function can only be used with new patient
+    # Cancels the new new_candidate_win
+    # This function can only be used with new candidate
     def cancel_(self):
         # Destroys the new_candidate_window
         self.new_candidate_window.destroy()
     
     def load_resume(self, key_):
-        messages().browse_file(key_)
+        browse().browse_file(key_)
+        self.new_candidate_window.focus_force()
 
     def view_resume(self, key_):
-        messages().open_files(key_)
+        browse().open_files(key_)
+        self.new_candidate_window.focus_force()
 
     # Deletes candidate record    
     def delete_candidate(self):
@@ -380,10 +390,11 @@ class candidate_ui:
 
     # Cancel the edit
     def cancel_edit(self):
-        # Destroys the edit_patient_window
+        # Destroys the edit_candiate_window
         self.new_candidate_window.destroy()
+        self.root.focuc_force()
     
-    # Function saves changes made to the patient
+    # Function saves changes made to the candidate
     def save_edit(self):
         # Saves the edit record
         key_ = int(self.keyEntry.get())
@@ -411,7 +422,7 @@ class candidate_ui:
         self.clear_search() # refreshes the treeview to include the new record
         self.cancel_edit()
         
-    # OnClick opens a new window when a record in the patient list is clicked 
+    # OnClick opens a new window when a record in the candidate list is clicked 
     def OnClick(self, event):
         
         selection = self.recordListColumn.focus()
@@ -439,7 +450,7 @@ class candidate_ui:
             self.my_menu.add_command(label = 'Edit', command = lambda:self.editCandidate(value[0]))
             self.my_menu.add_separator()
             if value[9] == 'Disposition':
-                self.my_menu.add_command(label = 'Interview', command = lambda:self.setup_interview_tab(value[0]))
+                self.my_menu.add_command(label = 'Interview', command = lambda:self.previous_interviews(value))
             else:
                 self.my_menu.add_command(label = 'Dispositon', command = lambda:self.disposition_candidate(value))
             self.my_menu.add_separator()
@@ -464,7 +475,7 @@ class candidate_ui:
             title = db.database().get_record('candidate2.db', record_[0]) + '\'s Phone Screen'
 
         self.phone_screen_window = Tr.Tk()                     # creates a new window
-        self.phone_screen_window.minsize(700, 700)
+        self.phone_screen_window.minsize(700, 800)
         self.phone_screen_window.title(title)
 
         # Frames
@@ -584,17 +595,24 @@ class candidate_ui:
             self.saveNotesBtn = Tr.Button(self.btnFrame, text = 'SAVE', width = 20, 
                                       command = lambda:self.save_phone_screen('interview.db', key_, record_[0]))
         self.saveNotesBtn.pack(side = 'left')
+
         self.sendBtn = Tr.Button(self.btnFrame, text = 'Send Form', width = 20, 
-                                 command = lambda:self.send_form('gusmaturana@icloud.com', 'Carl', 'New Hire'))
+                                 command = lambda:self.send_form('gusmaturana@icloud.com', key_, 'New Hire'))
         self.sendBtn.pack(side = 'left')
         #self.openformBtn = Tr.Button(self.btnFrame, text = 'Open Form', width = 20,
         #                             command = lambda:self.save_phone_screen('interview.db', record_[0]))
         self.openformBtn = Tr.Button(self.btnFrame, text = 'Open Form', width = 20,
-                                     command = self.view_phone_screens_forms)
+                                     command = lambda:self.save_phone_screen('interview.db', key_, record_[1]))
         self.openformBtn.pack(side = 'right')
+
+        self.downloadFormBtn = Tr.Button(self.btnFrame, text = 'Download Form', width = 20,
+                                     command = lambda:self.save_phone_screen('interview.db', key_, record_[1], True))
+        self.downloadFormBtn.pack(side = 'right')
+
         self.clsBtn = Tr.Button(self.phone_screen_window, text = 'Close', width = 20,
                                 command = lambda:self.phone_screen_window.destroy())
         self.clsBtn.pack(side = 'bottom')
+
         self.vResumeBtn = Tr.Button(self.phone_screen_window, text = 'View Resume', width = 20,
                                     command = lambda:self.view_resume(record_[1]))
         self.vResumeBtn.pack(side = 'bottom')
@@ -619,8 +637,9 @@ class candidate_ui:
         self.interviewerInfo.pack(side = 'bottom')
         self.candidateInfo.pack(side = 'top') 
        
-    # saves the phone screen form an creates a excel form
-    def save_phone_screen(self, db_name, key_, cNumber_):
+    # function saves the phone screen form
+    # function can create a download of the form in excel
+    def save_phone_screen(self, db_name, key_, cNumber_, export = False):
         name_ = self.candidateEntry.get().split(' ')
         record_ = (int(key_), cNumber_, 
                     name_[0], name_[1], self.phoneEntry.get(), self.interviewerEntry.get(), self.dateEntry.get(), 
@@ -639,12 +658,14 @@ class candidate_ui:
         
         if self.find_phone_screen('interview.db', int(key_)) == False:
             db.database().insert_record_phone_screen(db_name, record_)
-            ex.export_to_excel().export_to_form(db_name,record_) # creates excel file
             self.sendBtn['state'] = 'active'
             self.openformBtn['state'] = 'active'
             db.database().update_candidate_record('candidate2.db',main_record_) 
             self.clear_search()
             self.phone_screen_records(int(cNumber_))
+            if export == True:
+                # creates an excel file
+                ex.export_to_excel().export_to_form(db_name,record_)
         else:
             # the format a record is different from record_ because the key is the last item in the edit record
             record = (cNumber_, name_[0], name_[1], self.phoneEntry.get(), self.interviewerEntry.get(), self.dateEntry.get(), 
@@ -653,17 +674,15 @@ class candidate_ui:
                      self.recommendationSelect.get(), self.notesEntry.get("1.0","end-1c"), self.role_.get(), self.req_.get(),
                      int(key_))
             db.database().update_phone_screen_record(db_name,record)
-            ex.export_to_excel().export_to_form(db_name,record_)
             db.database().update_candidate_record('candidate2.db',main_record_) 
             self.clear_search()
             self.phone_screen_records(int(cNumber_))
+            if export == True:
+                # creates and excel file
+                ex.export_to_excel().export_to_form(db_name,record_)
     
     # function needed to sets up interviews
     def setup_interview(self):
-
-        # Creates calendar picker
-        self.cal = DateEntry(self.new_candidate_window, selectmode = "day", width = 21)
-        self.cal.grid(row = 17, column = 4 )
 
         # Creates the lables for the text entries all labels will load before the text entry fields
         self.dateLbl = Tr.Label(self.new_candidate_window, text = 'INTERVIEW DATE: ', width = 15, justify = 'left')
@@ -676,14 +695,41 @@ class candidate_ui:
         self.proPocLbl.grid(row = 20, column = 3)
         self.commentsLbl = Tr.Label(self.new_candidate_window, text = 'COMMENTS ', width = 15, justify = 'right')
         self.commentsLbl.grid(row = 21, column = 3)
-        self.timeEntry = Tr.Entry(self.new_candidate_window, width = 23)
-        self.timeEntry.grid(row = 18, column =4)
+        self.dateEntry = Tr.Entry(self.new_candidate_window, width =23)
+        self.dateEntry.bind('<Button-1>', self.OnClick_Date) # binding dateEntry text to a mouse click
+        self.dateEntry.grid(row = 17, column = 4)
+        self.hourstr = Tr.StringVar(self.new_candidate_window, "00")
+        self.hour = Tr.Spinbox(self.new_candidate_window, from_=1, to=12, wrap=True, textvariable=self.hourstr, width=2, state="readonly")
+        self.minstr = Tr.StringVar(self.new_candidate_window, "00")
+        values_ = ["00","15", "30", "45"]
+        self.min = Tr.Spinbox(self.new_candidate_window, values=values_, wrap=True, textvariable=self.minstr, width=2, state="readonly")
+        self.daystr = Tr.StringVar(self.new_candidate_window, "AM")
+        words = ["AM", "PM"]
+        self.day = Tr.Spinbox(self.new_candidate_window, values=words, wrap=True, textvariable=self.daystr, width=4, state="readonly")
+        self.hour.grid(row = 18, column = 4)
+        self.min.grid(row = 18, column = 5)
+        self.day.grid(row = 18, column = 6)
         self.programEntry = Tr.Entry(self.new_candidate_window, width = 23)
         self.programEntry.grid(row = 19, column =4)
         self.pPocEntry = Tr.Entry(self.new_candidate_window, width = 23)        
         self.pPocEntry.grid(row = 20, column = 4)
         self.commentsEntry = Tr.Entry(self.new_candidate_window, width = 23)
         self.commentsEntry.grid(row = 21, column = 4)
+
+    # Displays calendar when the etnry box is selected or click
+    def OnClick_Date(self,event):
+        self.cal_root = Tr.Tk()
+        self.cal_root.overrideredirect(True)    # Hides the window's title bar
+        self.cal = Calendar(self.cal_root,pos_x=0, pos_y=0, foreground='white', background='red')
+        self.cal.bind('<<CalendarSelected>>',self.Calendar_Click) #binds the mouse click to the selected date in the calendar
+        self.cal.pack()
+
+    # Destrotys the calendar window after a date is selected
+    def Calendar_Click(self, event):
+        date = str(self.cal.get_date())
+        self.dateEntry.delete(0,END)
+        self.dateEntry.insert('end', date)
+        self.cal_root.destroy()
 
     # opens up the window to set up an interview
     def setup_interview_tab(self, key_):
@@ -788,19 +834,21 @@ class candidate_ui:
         self.lable4Frame.pack(side = 'top')
         self.text4 = Tr.Text(self.lable4Frame, width = 100, heigh = 3)
         self.text4.pack(side = 'top')
+        self.text4.insert('end', 'test 4')
         str_label5 = 'RESPECT - we realize that success comes from diverse ideas and talent working together to achieve our goals.\n' + \
                      'Describe a situation werhe others you were working with on a project disagreed with your ideas. What did you\n' + \
                      'do? Describe a situation in which you had to arrive at a compromise or help others to compromise. What was your\n' + \
                      'role? What steps did you take? What was the result?'
         self.label5 = Tr.LabelFrame(self.leftFrame, text = str_label5)
         self.label5.pack(side = 'top')
-        self.text4 = Tr.Text(self.label5, width = 100, heigh = 3)
-        self.text4.pack(side = 'top')
+        self.text5 = Tr.Text(self.label5, width = 100, heigh = 3)
+        self.text5.pack(side = 'top')
         str_label6 = 'NOTES'
         self.lable6Frame = Tr.LabelFrame(self.leftFrame,text = str_label6)
         self.lable6Frame.pack(side = 'top')
-        self.text5 = Tr.Text(self.lable6Frame, width = 100, heigh = 3)
-        self.text5.pack(side = 'top')
+        self.text6 = Tr.Text(self.lable6Frame, width = 100, heigh = 3)
+        self.text6.pack(side = 'top')
+        self.text6.insert('end','Test 6')
 
 
         self.savebtn = Tr.Button(self.rightFrame, width = 20, text = 'SAVE')
@@ -816,13 +864,17 @@ class candidate_ui:
                                    command = lambda:self.close_window(self.interview_form))
         self.interClose_btn.pack(side = 'bottom')
 
+        key_ = 0
         if flag == False:
             self.nameInput.insert('end',value_[1] + ' ' + value_[2])
             self.dateE.insert('end',self.format_date(str(date.today())))
             self.reqE.insert('end',value_[4])
+            key_ = i_unique_key('interview.db')
         else:
-            self.nameInput.insert('end',value_[2] + ' ' + value_[3])
-
+            self.nameInput.insert('end',recorc_[2] + ' ' + record_[3])
+            self.dateE.insert('end',recored_[4])
+            self.interviewersEntry.insert()
+            
     # saves the interveiw record
     def save_interview_record(self, db_name, key_, cNumber_):
         name_ = self.nameInput.get().split(' ')
@@ -862,6 +914,7 @@ class candidate_ui:
             self.clear_search()
             self.phone_screen_records(int(cNumber_))
 
+    # displays the previous phone interview as a list on the screen
     def previous_phone_screenings(self, record_):
 
         title = record_[1] # show the candidate's name
@@ -893,13 +946,14 @@ class candidate_ui:
         self.new_btn.pack(side = 'top')
         self.ppsFrame.pack(side = 'top', fill="both", expand=True)
         self.phoneScreenList.bind("<Double-Button-1>", self.OnClick_phone_screening)
-        self.phoneScreenList.bind("<Button-2>", self.OnRightClick_phone_screening)
+        self.phoneScreenList.bind("<Button-3>", self.OnRightClick_phone_screening)
 
         for col in dataCols:
             self.phoneScreenList.heading(col, text = col.title())
         
         self.phone_screen_records(int(record_[0]))
 
+    # displays a list of previous interviews
     def previous_interviews(self, record_):
 
         title = record_[1] # show the candidate's name
@@ -926,11 +980,16 @@ class candidate_ui:
         self.close_interview_btn = Tr.Button(self.view_interview_forms, text = 'Close', width = 12,
                                   command = lambda:self.close_window(self.view_interview_forms))
         self.close_interview_btn.pack(side = 'bottom')
+        '''
         self.new_interview_btn = Tr.Button(self.view_interview_forms, text = 'New', width = 12,
                                 command = lambda:self.perform_interview(record_, False))
+        '''
+        self.new_interview_btn = Tr.Button(self.view_interview_forms, text = 'New', width = 12,
+                                command = lambda:itw.interview().perform_interview(record_, False))
+        
         self.new_interview_btn.pack(side = 'top')
         self.interview_frame.pack(side = 'top', fill="both", expand=True)
-        self.interviewList.bind("<Double-Button-1>", self.OnClick_phone_screening)
+        self.interviewList.bind("<Double-Button-1>", self.Onclick_interview)
 
         for col in dataCols:
             self.interviewList.heading(col, text = col.title())
@@ -948,6 +1007,14 @@ class candidate_ui:
         # and passes the candidate id#
         self.phone_screen_interview(value)
 
+    def Onclick_interview(self, event):
+        selection = self.interviewList.focus()
+        value = self.interviewList.item(selection).get('values')
+        # Opens the edit candidate window
+        # and passes the candidate id#
+        itw.interview().perform_interview(value)
+        #self.perform_interview(value)
+
     def OnRightClick_phone_screening(self, event):
         # .identify_row(event.y) gets the value store in the treeview
         selection = self.phoneScreenList.identify_row(event.y)
@@ -957,6 +1024,8 @@ class candidate_ui:
         # creates a popup menu and its listed items
         self.ps_menu = Menu(self.phoneScreenList, tearoff=0)
         self.ps_menu.add_command(label = 'View Phone Screen', command = lambda:self.phone_screen_interview(value))
+        self.ps_menu.add_separator()
+        self.ps_menu.add_command(label = 'Setup Interview', command = lambda:self.setup_interview)
         self.ps_menu.add_separator()
         self.ps_menu.add_command(label = 'Delete', command = lambda:self.remove_phone_screening(value))
 
@@ -1037,7 +1106,7 @@ class candidate_ui:
                 ers.errors().general_error_messages('Please select a search criteria')
         else:
             if self.selection_box.get() == 'Number':
-                #To check that patient number is integer
+                #To check that candidate number is integer
                 if self.IsAnInt(self.search_entry.get()) == True:
                     id_ = 'ID'
                     self.search_items(id_, self.search_entry.get())
@@ -1069,6 +1138,7 @@ class candidate_ui:
     def search_items(self, name, key):
         self.clear_list() # clear the list
         count = 0
+        item = []
         for item in db.database().print_results('candidate2.db', name, key):
             count = count + 1
             if count % 2 != 0:
@@ -1077,9 +1147,14 @@ class candidate_ui:
                 self.recordListColumn.insert('', 'end', values=item, tags = ('evenrow',))
                         
         #colors the row
-        self.recordListColumn.tag_configure('oddrow', background = 'lightblue') 
-        self.records_lable.config(text = "TOTAL RECORDS: " + str(len(self.recordListColumn.get_children())))
+        if len(item) > 0:
+            self.recordListColumn.tag_configure('oddrow', background = 'lightblue') 
+            self.records_lable.config(text = "TOTAL RECORDS: " + str(len(self.recordListColumn.get_children())))
+        else:
+            ers.errors().error_messages(2, key)
+            print('This did not happen')
         count = 0  
+
         
     def general_search_items(self, key):
         self.clear_list() # clear the list
@@ -1124,7 +1199,6 @@ class candidate_ui:
             self.phoneScreenList.delete(item)
 
         for item in db.database().db_print_phone_screen_records('interview.db'):
-            print(item)
             if item[1] == key_:
                 cnt = cnt + 1
                 list_ = [ item[0], item[1], item[6], item[5], item[7],item[13]]
@@ -1145,17 +1219,17 @@ class candidate_ui:
             print(item)
             if item[1] == key_:
                 cnt = cnt + 1
-                list_ = [ item[0], item[1], item[6], item[5], item[7],item[13]]
+                list_ = [ item[0], item[1], item[5], item[4], item[6],item[7]]
                 if cnt % 2 != 0:
                     self.interviewList.insert('', 'end', values = list_, tags = ('oddrow'))
                 else:
                     self.interviewList.insert('', 'end', values = list_, tags = ('evenrow'))
 
-        self.phoneScreenList.tag_configure('oddrow', background = 'green')
+        self.interviewList.tag_configure('oddrow', background = 'green')
         cnt = 0
 
     # Clears the search criteria 
-    # this helper function can also be used to refresh the patient list after a patient
+    # this helper function can also be used to refresh the candidate list
     # has been added or updated        
     def clear_search(self):
         
@@ -1195,7 +1269,7 @@ class candidate_ui:
     def Event_Driven_Search(self, event):
         self.search_()
 
-    # show_patient_history will display the PATIENT_HIS table when the PATIENT HISTORY button is pressed
+    # show the delete candidates
     def show_Deleted_history(self, db_ ='recovery.db'):
         self.clear_list() # clear the list
         cnt = 0
@@ -1303,7 +1377,7 @@ class candidate_ui:
                 unique_key(db_)
 
         return key_    
-
+    # creates a four didit random number and then compares to keys in the db
     def ps_unique_key(self, db_):
 
         key_ = random.randint(1047,9999)
@@ -1312,12 +1386,21 @@ class candidate_ui:
             if key_ == item[0]:
                 ps_unique_key(db_)
 
-        return key_    
+        return key_   
+
+    # creates a four didit random number and then compares to keys in the db
+    def i_unique_key(self, db_):
+        key_ = random.randint(1047,9999)
+
+        for item in db.database().db_print_interview_records(db_):
+            if key_ == item[0]:
+                i_unique_key(db_)
+
+        return key_
+
     # returns true if the phone screening has been performed
     def find_phone_screen(self, db_name, key_):
         rsl = db.database().get_phone_exist(db_name,key_)
-        print('rsl inside find_phone_screen')
-        print(rsl)
         return rsl
 
     def format_date(self, date):
@@ -1325,7 +1408,11 @@ class candidate_ui:
         return date[5:7]+ "/" + date[8:10] + "/" + date[2:4]
 
     def send_form(self, email_, name_, subject_):
-
+        # this function should create a the form that is going to be sent
+        # the app does not store any forms, it only creates the forms upon request
         mail.email().send_email(email_, name_, subject_)
+
+
+
 
 
