@@ -1,6 +1,6 @@
 '''
 	Created on August 19, 2022
-	filename: database.py
+	filename: exel_export.py
 	last update: August 23, 2022
 	@author: Gus_Maturana
 '''
@@ -13,6 +13,7 @@ from xlutils.copy import copy
 import database as db
 import openpyxl
 import os
+from pathlib import Path
 
 class export_to_excel:
 
@@ -45,41 +46,81 @@ class export_to_excel:
 	# it takes a array of the items and the database name
 	def export_to_form(self, db_name, record_):
 		
-		name_ = record_[1] + "_" + record_[2] # full name
+		name_ = record_[2] + "_" + record_[3] # full name
 		file = self.copyfile(name_)
-		wb = openpyxl.load_workbook(file)	# open the file that was created fromt eh template to edit
+		wb = openpyxl.load_workbook(file)	# open the file that was created based on the template to edit
 
 		sheet = wb.active
 
-		sheet["B1"] = record_[1] + " " + record_[2] # full name
-		sheet["D1"] = record_[3]
-		sheet["B3"] = record_[4]
-		sheet["D3"] = record_[5]
-		sheet["D4"] = record_[6]
-		sheet["B5"] = record_[7]
-		sheet["A8"] = record_[8]
-		sheet["A15"] = record_[9]
-		if record_[10] == 'YES' or record_[10] == 'yes' or record_[10] == 'Yes':
+		sheet["B1"] = record_[2] + " " + record_[3] # full name
+		sheet["D1"] = record_[4]
+		sheet["B3"] = record_[5]
+		sheet["D3"] = record_[6]
+		sheet["D4"] = record_[7]
+		sheet["B5"] = record_[8]
+		sheet["A8"] = record_[9]
+		sheet["A15"] = record_[10]
+		if record_[11] == 'YES' or record_[11] == 'yes' or record_[11] == 'Yes':
 			sheet["E22"] = 'X'
 		else:
 			sheet["H22"] = 'X'
-		sheet["A24"] = record_[11]
-		if record_[12] == 'INTERVIEW':
+		sheet["A24"] = record_[12]
+		if record_[13] == 'INTERVIEW':
 			sheet["E31"] = 'X'
 		else:
 			sheet["H31"] = 'X'
-		sheet["A34"] = record_[13]
-		sheet["B39"] = record_[14]
-		sheet["D39"] = record_[15]
+		sheet["A34"] = record_[14]
+		sheet["B39"] = record_[15]
+		sheet["D39"] = record_[16]
 
 		wb.save(file)
-		
-		cmd = 'open ' + file 
-		os.system(cmd)
+		os.system(file)
 
+	def export_to_interview_form(self, db_name, record_, name_):
+		name = record_[3] + " " + record_[4] # full name
+		file = self.copyfile(name_,2)
+		wb = opnepyxl.load_workbook(file)	# open the file that was created from based on the template to edit
+
+		
 	# copies the template an creates a new xlsx file
-	def copyfile(self, file_):
-		file_name = file_ + "_Phone_Screen_Form.xlsx"
-		shutil.copyfile('template.xlsx', file_name)
+	def copyfile(self, file_, opt = 1):
+		path = Path(file_ + "__Phone_Screen_Form.xlsx")
+		if opt == 1:
+			file_name = file_ + "_Phone_Screen_Form.xlsx"
+			shutil.copyfile('template.xlsx', file_name)
+		else:
+			file_name = file_ + "_Interview_Form.xlsx"
+			shutil.copyfile('Interview_template.xlsx', file_name)
 
 		return file_name
+	
+	# interview form template has to be created
+	def copyfile_interview(self, file_, opt = 1):
+		if opt == 1:
+			file_name = file_ + "_Interview_Form.xlsx"
+		else:
+			file_name = file_ + "_Inter"
+
+
+# class impport information from an excel
+class import_from_excel:
+
+	def __init__(self):
+		'''
+		'''
+		pass
+
+# end of import_from_excel class
+
+# class exports the interview form to an excel
+class export_interview_form:
+	
+	def __init__(self):
+		'''
+		'''
+		pass
+	def export_to_form(self):
+		pass
+
+# end of export_interview_form Calss
+
