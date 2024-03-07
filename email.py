@@ -24,7 +24,7 @@ class email:
         self.outlook = win32com.client.Dispatch('outlook.application')
 
 
-    def send_email(self, email_, path_, message_):
+    def send_email(self, email_, message_, path_= ''):
 
         file_path = self.find_attachment(path_)
         mail = self.outlook.CreateItem(self.olmailitem)   
@@ -163,8 +163,7 @@ def main():
     root.wm_title("Browser")
     bButton = ttk.Button(master = root, text = 'Browse', width = 6, command=lambda:browse().browse_file('Test'))
     eButton = ttk.Button(master = root, text = 'Test1', width = 6, 
-                         command=lambda:email('Test1').send_email('gus2234@hotmail.com', message_)
-                         )
+                         command=lambda:email('Test1').send_email(message_,'gus2234@hotmail.com' ))
 
     info_ = ('My Test Meeting', '2024-02-22 10:30', 'Online', 'This is just a test 1')  
     people = ('gusmaturana@icloud.com','gumaturana@gmail.com', 'tavocub101@yahoo.com')                                                                                            
@@ -175,6 +174,8 @@ def main():
     bButton.pack(side=ttk.RIGHT, padx = 2, pady =2)
     eButton.pack(side=ttk.LEFT, padx = 2, pady=2)
     mButton.pack(side=ttk.LEFT, padx =2, pady=2)
+
+    
 
     ttk.mainloop()
 
