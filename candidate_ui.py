@@ -60,7 +60,7 @@ class candidate_ui:
         self.btn_disposition = Tr.Button(self.topFrame,\
                                         text = 'DISPOSITION', command = self.candidate_history, width = 12)
         self.btn_onboarding = Tr.Button(self.topFrame,\
-                                        text = 'ONBOARDING', width = 12, command = on.onboard().onbarding_window)
+                                        text = 'ONBOARDING', width = 12, command = on.onboard().onboarding_window)
         
         self.search_entry_lbl = Tr.LabelFrame(self.search_frame, text = 'Criteria: ')
 
@@ -229,7 +229,7 @@ class candidate_ui:
         # Note grid() won't allow entry fields to be focus()
         #key_= 1 + len(self.recordListColumn.get_children())
         #self.keyEntry.insert('end', key_)
-        
+
     # This is section creates the edit window for the candidate record
     def editCandidate(self, key):
         # the candidate name will be displayed on window title
@@ -705,16 +705,21 @@ class candidate_ui:
         self.min = Tr.Spinbox(self.new_candidate_window, values=values_, wrap=True, textvariable=self.minstr, width=2, state="readonly")
         self.daystr = Tr.StringVar(self.new_candidate_window, "AM")
         words = ["AM", "PM"]
-        self.day = Tr.Spinbox(self.new_candidate_window, values=words, wrap=True, textvariable=self.daystr, width=4, state="readonly")
+        self.day = Tr.Spinbox(self.new_candidate_window, values=words, wrap=True, textvariable=self.daystr, width=3, state="readonly")
+        self.sendMeetingNotice = Tr.Button(self.new_candidate_window, Label ='Send Notice', width =15, command= lambda:self.send_notice)
         self.hour.grid(row = 18, column = 4)
         self.min.grid(row = 18, column = 5)
         self.day.grid(row = 18, column = 6)
         self.programEntry = Tr.Entry(self.new_candidate_window, width = 23)
         self.programEntry.grid(row = 19, column =4)
-        self.pPocEntry = Tr.Entry(self.new_candidate_window, width = 23)        
+        self.pPocEntry = Tr.Entry(self.new_candidate_window, width = 23)
         self.pPocEntry.grid(row = 20, column = 4)
         self.commentsEntry = Tr.Entry(self.new_candidate_window, width = 23)
         self.commentsEntry.grid(row = 21, column = 4)
+        self.sendMeetingNotice.grid(row = 22, column = 4)
+
+    def send_notice(self):
+        print("Sending Notice")
 
     # Displays calendar when the etnry box is selected or click
     def OnClick_Date(self,event):
@@ -1411,8 +1416,5 @@ class candidate_ui:
         # this function should create a the form that is going to be sent
         # the app does not store any forms, it only creates the forms upon request
         mail.email().send_email(email_, name_, subject_)
-
-
-
 
 
